@@ -11,6 +11,7 @@ use tracing::info;
 
 use crate::Result;
 use crate::config::Config;
+use crate::db::{DbMapper, create_db_mapper};
 use crate::dto::Actor;
 use crate::web::all_routes;
 
@@ -18,12 +19,15 @@ use crate::web::all_routes;
 pub struct AppState {
     pub config: Arc<Config>,
     pub client: Client,
+    pub db: Arc<DbMapper>,
     pub auth_cache: Cache<String, Actor>,
 }
 
 pub async fn run(config: Config) -> Result<()> {
     let server_address = config.server.address.clone();
     let frontend_dir = config.frontend_dir.clone();
+    let db_filename = config.db.filename.clone();
+
     let client = ClientBuilder::new()
         .timeout(Duration::from_secs(10))
         .build()
@@ -35,8 +39,11 @@ pub async fn run(config: Config) -> Result<()> {
         .max_capacity(100)
         .build();
 
+    let db_mapper = create_db_mapper(&db_filename).await?;
+
     let state = AppState {
         config: Arc::new(config),
+        db: Arc::new(db_mapper),
         client,
         auth_cache,
     };

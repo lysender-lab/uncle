@@ -1,6 +1,9 @@
-pub mod auth;
+mod auth;
+mod image;
+mod image_prompt;
+mod job;
 mod oauth;
-pub mod token;
+mod token;
 
 use crate::buffed::dto::ErrorMessageBuf;
 use prost::Message;
@@ -12,7 +15,12 @@ use crate::{
     error::{ErrorResponse, HttpResponseBytesSnafu, HttpResponseParseSnafu, ProtobufDecodeSnafu},
 };
 
+pub use auth::*;
+pub use image::*;
+pub use image_prompt::*;
+pub use job::*;
 pub use oauth::*;
+pub use token::*;
 
 pub async fn handle_response_error(
     response: reqwest::Response,

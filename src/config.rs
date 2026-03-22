@@ -10,6 +10,7 @@ use crate::{Error, Result};
 #[derive(Clone, Deserialize)]
 pub struct Config {
     pub server: ServerConfig,
+    pub db: DbConfig,
     pub jwt_secret: String,
     pub api_url: String,
     pub frontend_dir: PathBuf,
@@ -23,6 +24,11 @@ pub struct Config {
 pub struct ServerConfig {
     pub address: String,
     pub https: bool,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct DbConfig {
+    pub filename: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -88,6 +94,9 @@ impl Config {
             server: ServerConfig {
                 address: required_env("SERVER_ADDRESS")?,
                 https: required_env("HTTPS")? == "1",
+            },
+            db: DbConfig {
+                filename: required_env("DB_FILENAME")?,
             },
             jwt_secret: required_env("JWT_SECRET")?,
             api_url: required_env("API_URL")?,
