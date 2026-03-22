@@ -90,7 +90,7 @@ pub async fn require_auth_middleware(
 
     if !ctx.actor.has_auth_scope() {
         if full_page {
-            let callback_url = state.config.server.public_url.clone();
+            let callback_url = format!("{}/auth/callback", &state.config.server.public_url);
             let scope = encode("auth oauth");
             // Generate current millis as state
             let oauth_state = Utc::now().timestamp_millis();
