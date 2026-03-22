@@ -1,11 +1,10 @@
 use snafu::ResultExt;
 use turso::{Builder, Connection};
 
+use crate::db::image::ImageRepo;
+use crate::db::image_prompt::ImagePromptRepo;
+use crate::db::job::JobRepo;
 use crate::error::{DbBuilderSnafu, DbConnectSnafu};
-use crate::{
-    app::AppRepo, oauth_code::OauthCodeRepo, org::OrgRepo, org_app::OrgAppRepo,
-    org_member::OrgMemberRepo, password::PasswordRepo, superuser::SuperuserRepo, user::UserRepo,
-};
 
 use crate::Result;
 
@@ -20,26 +19,16 @@ pub async fn create_db_pool(filename: &str) -> Result<Connection> {
 }
 
 pub struct DbMapper {
-    pub apps: AppRepo,
-    pub oauth_codes: OauthCodeRepo,
-    pub orgs: OrgRepo,
-    pub org_apps: OrgAppRepo,
-    pub org_members: OrgMemberRepo,
-    pub passwords: PasswordRepo,
-    pub superusers: SuperuserRepo,
-    pub users: UserRepo,
+    pub image_prompts: ImagePromptRepo,
+    pub images: ImageRepo,
+    pub jobs: JobRepo,
 }
 
 pub async fn create_db_mapper(filename: &str) -> Result<DbMapper> {
     let pool = create_db_pool(filename).await?;
     Ok(DbMapper {
-        apps: AppRepo::new(pool.clone()),
-        oauth_codes: OauthCodeRepo::new(pool.clone()),
-        orgs: OrgRepo::new(pool.clone()),
-        org_apps: OrgAppRepo::new(pool.clone()),
-        org_members: OrgMemberRepo::new(pool.clone()),
-        passwords: PasswordRepo::new(pool.clone()),
-        superusers: SuperuserRepo::new(pool.clone()),
-        users: UserRepo::new(pool),
+        image_prompts: ImagePromptRepo::new(pool.clone()),
+        images: ImageRepo::new(pool.clone()),
+        jobs: JobRepo::new(pool),
     })
 }
