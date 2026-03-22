@@ -1,62 +1,17 @@
-use crate::buffed::dto::{
-    ErrorMessageBuf, OauthAuthorizationCodeBuf, OauthAuthorizeBuf, OauthTokenRequestBuf,
-    OauthTokenResponseBuf, UserBuf,
-};
+use crate::buffed::dto::{ErrorMessageBuf, OauthTokenRequestBuf, OauthTokenResponseBuf, UserBuf};
 use prost::Message;
 use snafu::ResultExt;
 
-use crate::ctx::Ctx;
-use crate::dto::{
-    OauthAuthorizationCodeDto, OauthAuthorizeDto, OauthTokenRequestDto, OauthTokenResponseDto,
-    UserDto,
-};
+use crate::dto::{OauthTokenRequestDto, OauthTokenResponseDto, UserDto};
 use crate::error::{HttpClientSnafu, HttpResponseBytesSnafu, ProtobufDecodeSnafu};
 use crate::run::AppState;
 use crate::{Error, Result};
-
-pub async fn create_authorization_code(
-    state: &AppState,
-    ctx: &Ctx,
-    query: &OauthAuthorizeDto,
-) -> Result<OauthAuthorizationCodeDto> {
-    let token = ctx.token().expect("Token is required");
-    let url = format!("{}/oauth/authorize", &state.config.api_url);
-
-    let body = OauthAuthorizeBuf {
-        client_id: query.client_id.clone(),
-        redirect_uri: query.redirect_uri.clone(),
-        scope: query.scope.clone(),
-        state: query.state.clone(),
-    };
-
-    let response = state
-        .client
-        .post(url)
-        .bearer_auth(token)
-        .body(prost::Message::encode_to_vec(&body))
-        .send()
-        .await
-        .context(HttpClientSnafu {
-            msg: "Unable to create authorization code. Try again later.".to_string(),
-        })?;
-
-    if !response.status().is_success() {
-        return Err(handle_oauth_error(response).await);
-    }
-
-    let body_bytes = response.bytes().await.context(HttpResponseBytesSnafu {})?;
-    let auth_code =
-        OauthAuthorizationCodeBuf::decode(&body_bytes[..]).context(ProtobufDecodeSnafu {})?;
-    let dto: OauthAuthorizationCodeDto = auth_code.into();
-
-    Ok(dto)
-}
 
 pub async fn exchange_code_for_access_token(
     state: &AppState,
     payload: &OauthTokenRequestDto,
 ) -> Result<OauthTokenResponseDto> {
-    let url = format!("{}/oauth/token", &state.config.api_url);
+    let url = format!("{}/oauth/token", &state.config.auth.api_url);
 
     let body = OauthTokenRequestBuf {
         client_id: payload.client_id.clone(),
@@ -89,7 +44,7 @@ pub async fn exchange_code_for_access_token(
 }
 
 pub async fn oauth_profile(state: &AppState, token: &str) -> Result<UserDto> {
-    let url = format!("{}/user", &state.config.api_url);
+    let url = format!("{}/user", &state.config.auth.api_url);
 
     let response = state
         .client

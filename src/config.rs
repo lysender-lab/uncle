@@ -13,7 +13,6 @@ pub struct Config {
     pub db: DbConfig,
     pub auth: AuthConfig,
     pub jwt_secret: String,
-    pub api_url: String,
     pub frontend_dir: PathBuf,
     pub openai: OpenAiConfig,
     pub aws: AwsConfig,
@@ -114,7 +113,6 @@ impl Config {
                 client_secret: required_env("AUTH_CLIENT_SECRET")?,
             },
             jwt_secret: required_env("JWT_SECRET")?,
-            api_url: required_env("API_URL")?,
             frontend_dir,
             openai: OpenAiConfig {
                 api_key: required_env("OPENAI_API_KEY")?,
