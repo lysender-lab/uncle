@@ -13,8 +13,8 @@ pub struct Config {
     pub jwt_secret: String,
     pub api_url: String,
     pub frontend_dir: PathBuf,
-    pub captcha_site_key: Option<String>,
-    pub captcha_api_key: Option<String>,
+    pub openai: OpenAiConfig,
+    pub aws: AwsConfig,
     pub ga_tag_id: Option<String>,
     pub assets: AssetManifest,
 }
@@ -23,6 +23,19 @@ pub struct Config {
 pub struct ServerConfig {
     pub address: String,
     pub https: bool,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct OpenAiConfig {
+    pub api_key: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct AwsConfig {
+    pub region: String,
+    pub key_id: String,
+    pub secret_key: String,
+    pub s3_bucket: String,
 }
 
 #[derive(Deserialize)]
@@ -61,10 +74,6 @@ impl AssetManifest {
 }
 
 impl Config {
-    pub fn captcha_enabled(&self) -> bool {
-        self.captcha_site_key.is_some() && self.captcha_api_key.is_some()
-    }
-
     pub fn build() -> Result<Self> {
         // Build the config from ENV vars
         let frontend_dir = PathBuf::from(required_env("FRONTEND_DIR")?);
@@ -83,8 +92,15 @@ impl Config {
             jwt_secret: required_env("JWT_SECRET")?,
             api_url: required_env("API_URL")?,
             frontend_dir,
-            captcha_site_key: optional_env("CAPTCHA_SITE_KEY"),
-            captcha_api_key: optional_env("CAPTCHA_API_KEY"),
+            openai: OpenAiConfig {
+                api_key: required_env("OPENAI_API_KEY")?,
+            },
+            aws: AwsConfig {
+                region: required_env("AWS_REGION")?,
+                key_id: required_env("AWS_KEY_ID")?,
+                secret_key: required_env("AWS_SECRET_KEY")?,
+                s3_bucket: required_env("AWS_S3_BUCKET")?,
+            },
             ga_tag_id: optional_env("GA_TAG_ID"),
             assets,
         })
