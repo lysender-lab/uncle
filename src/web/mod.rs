@@ -7,8 +7,8 @@ mod pref;
 mod routes;
 mod security_headers;
 
-pub const AUTH_TOKEN_COOKIE: &str = "auth_token";
-pub const THEME_COOKIE: &str = "theme";
+pub const AUTH_TOKEN_COOKIE: &str = "uncle_auth_token";
+pub const THEME_COOKIE: &str = "uncle_theme";
 
 pub use error::*;
 pub use index::*;

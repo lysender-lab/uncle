@@ -106,7 +106,7 @@ impl Config {
                 https: required_env("HTTPS")? == "1",
             },
             db: DbConfig {
-                filename: required_env("DB_FILENAME")?,
+                filename: required_env("DATABASE_FILE")?,
             },
             auth: AuthConfig {
                 auth_url: required_env("AUTH_PUBLIC_BASE_URL")?,
@@ -121,8 +121,8 @@ impl Config {
             },
             aws: AwsConfig {
                 region: required_env("AWS_REGION")?,
-                key_id: required_env("AWS_KEY_ID")?,
-                secret_key: required_env("AWS_SECRET_KEY")?,
+                key_id: required_env("AWS_ACCESS_KEY_ID")?,
+                secret_key: required_env("AWS_SECRET_ACCESS_KEY")?,
                 s3_bucket: required_env("AWS_S3_BUCKET")?,
             },
             ga_tag_id: optional_env("GA_TAG_ID"),

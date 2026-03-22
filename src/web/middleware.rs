@@ -96,7 +96,7 @@ pub async fn require_auth_middleware(
             let oauth_state = Utc::now().timestamp_millis();
             let authorize_url = format!(
                 "{}/oauth/authorize?client_id={}&scope={}&state={}&redirect_uri={}",
-                state.config.auth.api_url,
+                state.config.auth.auth_url,
                 state.config.auth.client_id,
                 scope,
                 oauth_state,
