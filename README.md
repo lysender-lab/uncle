@@ -1,100 +1,65 @@
-# yaas
+# Uncle - AI Playground
 
-Yet another auth service
-
-Objectives:
-- Allow single sign on to multiple registered applications
-- Organization is the key feature
-- Manage users within the organization
-- Email and password login by default
-- Allows OAuth2 login with Google, Facebook, GitHub, etc.
-
-## Workflow
-
-- User visits an application
-- Application redirects to yaas
-- yaas let the user login
-- yaas redirects back to the application with an authorization code
-- application exchanges the authorization code for an access token
-- application uses the access token to access the user's information
-- application store access token in cookie
-- application let's the user access the application
-
-## Super Admin Setup
-
-- There must be a process where a super admin is created
-- The application should not be accessible until the super admin is created
+Goals:
+- [ ] Generate or edit images using AI models.
+- [ ] Chat-like interface like ChatGPT for conversational interactions with the AI.
 
 ## Tech Stack
 
-- Rust
-- Protobuf
-- REST
+- Axum and Askama for the web server and templating.
+- Yaas API for single-signon and user management.
+- OpenAI API for AI interactions.
+- AWS S3 for image input/output storage.
+- Bulma CSS for multi-page application styling of the website.
+- React and Tailwind CSS for the AI Playground interface.
 
 ## Models
 
-User:
+image_prompts:
 - id
-- email
-- name
-- status
-- created_at
-- updated_at
-- deleted_at
-
-Password:
-- id
-- password
-- created_at
-- updated_at
-
-Org:
-- id
-- name
-- status
-- owner_id
-- created_at
-- updated_at
-- deleted_at
-
-OrgMember:
-- id
-- org_id
 - user_id
-- roles
+- prompt
+- short_title
+- model
+- background
+- moderation
+- qty
+- output_compression
+- output_format
+- quality
+- status (pending|completed|failed)
+- created_at
+- updated_at
+
+images:
+- id
+- user_id
+- prompt_id
+- category (input|output)
+- filename
+- file_type
+- dimensions
+- created_at
+
+jobs:
+- id
+- job_type
+- prompt_id
 - status
 - created_at
 - updated_at
 
-App:
-- id
-- name
-- secret
-- redirect_uri
-- created_at
-- updated_at
-- deleted_at
+## Image Workflow
 
-OrgApp:
-- id
-- org_id
-- app_id
-- created_at
+- User submits a prompt through the web interface along with attached images if there are any.
+- Images are uploaded to AWS S3 using a presigned URL.
+- Prompt is received in the server, stored in the database with pending status and returns.
+- User periodically checks the status of the prompt until it is completed.
+- Once completed, user fetches the generated images and displays them in the interface.
+- If failed, user is notified and can try again or edit the prompt.
 
-OauthCode:
-- id
-- code
-- state
-- redirect_uri
-- scope
-- app_id
-- org_id
-- user_id
-- created_at
-- expires_at
+### Job Queue
 
-## Roles
-
-- SuperAdmin
-- OrgAdmin
-- OrgMember
+- On submit of a prompt, a job is created.
+- A worker process picks up pending jobs and processes then sequentially.
+- Once job is completed, prompt status is updated.
