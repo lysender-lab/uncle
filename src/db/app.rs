@@ -2,14 +2,14 @@ use snafu::ResultExt;
 use turso::{Connection, Row};
 
 use crate::Result;
+use crate::dto::{AppDto, ListAppsParamsDto, NewAppDto, UpdateAppDto};
 use crate::error::{DbPrepareSnafu, DbStatementSnafu};
+use crate::pagination::{Paginated, PaginationParams};
 use crate::turso_decode::{
     FromTursoRow, collect_count, collect_row, collect_rows, row_integer, row_text,
 };
 use crate::turso_params::{integer_param, new_query_params, text_param};
-use yaas::dto::{AppDto, ListAppsParamsDto, NewAppDto, UpdateAppDto};
-use yaas::pagination::{Paginated, PaginationParams};
-use yaas::utils::{IdPrefix, generate_id};
+use crate::utils::{IdPrefix, generate_id};
 
 pub struct App {
     pub id: String,

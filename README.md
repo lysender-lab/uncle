@@ -38,6 +38,8 @@ images:
 - category (input|output)
 - filename
 - file_type
+- file_size
+- file_path
 - dimensions
 - created_at
 
@@ -63,3 +65,9 @@ jobs:
 - On submit of a prompt, a job is created.
 - A worker process picks up pending jobs and processes then sequentially.
 - Once job is completed, prompt status is updated.
+
+## DB Migrations
+
+```
+tursodb db/uncle.db < migrations/migration-file.sql
+```

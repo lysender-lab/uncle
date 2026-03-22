@@ -7,7 +7,7 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use snafu::Snafu;
 
-use yaas::role::{InvalidPermissionsError, InvalidRolesError};
+use crate::role::{InvalidPermissionsError, InvalidRolesError};
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -25,6 +25,30 @@ pub enum Error {
 
     #[snafu(display("Failed to render template: {}", source))]
     Template { source: askama::Error },
+
+    #[snafu(display("{}", source))]
+    DbBuilder { source: turso::Error },
+
+    #[snafu(display("{}", source))]
+    DbConnect { source: turso::Error },
+
+    #[snafu(display("{}", source))]
+    DbExecute { source: turso::Error },
+
+    #[snafu(display("{}", source))]
+    DbPrepare { source: turso::Error },
+
+    #[snafu(display("{}", source))]
+    DbStatement { source: turso::Error },
+
+    #[snafu(display("{}", source))]
+    DbRow { source: turso::Error },
+
+    #[snafu(display("{}", source))]
+    DbValue { source: turso::Error },
+
+    #[snafu(display("{}", source))]
+    DbTransaction { source: turso::Error },
 
     #[snafu(display("Response builder error: {}", source))]
     ResponseBuilder { source: http::Error },
