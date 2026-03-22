@@ -1,5 +1,8 @@
 mod app;
 mod db;
+mod image;
+mod image_prompt;
+mod job;
 mod oauth_code;
 mod org;
 mod org_app;

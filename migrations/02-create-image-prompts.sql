@@ -7,7 +7,7 @@ CREATE TABLE image_prompts (
     background TEXT NOT NULL,
     moderation TEXT NOT NULL,
     qty INTEGER NOT NULL,
-    output_compression TEXT NOT NULL,
+    output_compression INTEGER NOT NULL,
     output_format TEXT NOT NULL,
     quality TEXT NOT NULL,
     status TEXT NOT NULL,

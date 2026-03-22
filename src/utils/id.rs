@@ -2,6 +2,9 @@ use uuid::Uuid;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IdPrefix {
+    ImagePrompt,
+    Image,
+    Job,
     OrgMember,
     User,
     App,
@@ -20,6 +23,9 @@ impl TryFrom<&str> for IdPrefix {
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         match value {
+            "imp" => Ok(Self::ImagePrompt),
+            "img" => Ok(Self::Image),
+            "job" => Ok(Self::Job),
             "omm" => Ok(Self::OrgMember),
             "usr" => Ok(Self::User),
             "app" => Ok(Self::App),
@@ -39,6 +45,9 @@ impl TryFrom<&str> for IdPrefix {
 impl core::fmt::Display for IdPrefix {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         match self {
+            Self::ImagePrompt => write!(f, "imp"),
+            Self::Image => write!(f, "img"),
+            Self::Job => write!(f, "job"),
             Self::OrgMember => write!(f, "omm"),
             Self::User => write!(f, "usr"),
             Self::App => write!(f, "app"),
