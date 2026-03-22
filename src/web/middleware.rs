@@ -5,6 +5,8 @@ use axum::{
     response::{IntoResponse, Redirect, Response},
 };
 use axum_extra::extract::CookieJar;
+use chrono::Utc;
+use urlencoding::encode;
 
 use crate::dto::Actor;
 
@@ -14,8 +16,8 @@ use crate::{
     error::ErrorInfo,
     models::{CspNonce, Pref},
     run::AppState,
-    services::auth::authenticate_token,
-    web::{Action, Resource, enforce_policy, handle_error},
+    services::authenticate_token,
+    web::handle_error,
 };
 
 use super::{AUTH_TOKEN_COOKIE, THEME_COOKIE};
@@ -80,6 +82,7 @@ pub async fn auth_middleware(
 
 pub async fn require_auth_middleware(
     ctx: Extension<Ctx>,
+    state: State<AppState>,
     req: Request,
     next: Next,
 ) -> Result<Response> {
@@ -87,7 +90,19 @@ pub async fn require_auth_middleware(
 
     if !ctx.actor.has_auth_scope() {
         if full_page {
-            return Ok(Redirect::to("/login").into_response());
+            let callback_url = state.config.server.public_url.clone();
+            let scope = encode("auth oauth");
+            // Generate current millis as state
+            let oauth_state = Utc::now().timestamp_millis();
+            let authorize_url = format!(
+                "{}/oauth/authorize?client_id={}&scope={}&state={}&redirect_uri={}",
+                state.config.auth.api_url,
+                state.config.auth.client_id,
+                scope,
+                oauth_state,
+                callback_url
+            );
+            return Ok(Redirect::to(&authorize_url).into_response());
         } else {
             return Err(Error::LoginRequired);
         }

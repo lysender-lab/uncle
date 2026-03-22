@@ -94,39 +94,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f202df86484c868dbad7eaa557ef785d5c66295e41b460ef922eca0723b842c"
 
 [[package]]
-name = "api"
-version = "0.1.0"
-dependencies = [
- "argon2",
- "askama",
- "axum",
- "axum-extra",
- "base64",
- "chrono",
- "dotenvy",
- "jsonwebtoken",
- "moka",
- "prost",
- "prost-build",
- "reqwest",
- "serde",
- "serde_json",
- "snafu",
- "tokio",
- "tower",
- "tower-cookies",
- "tower-http",
- "tower_governor",
- "tracing",
- "tracing-subscriber",
- "turso",
- "url",
- "urlencoding",
- "uuid",
- "validator",
-]
-
-[[package]]
 name = "arc-swap"
 version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3414,6 +3381,39 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e1b88fcfe09e89d3866a5c11019378088af2d24c3fbd4f0543f96b479ec90697"
 dependencies = [
  "version_check",
+]
+
+[[package]]
+name = "uncle"
+version = "0.1.0"
+dependencies = [
+ "argon2",
+ "askama",
+ "axum",
+ "axum-extra",
+ "base64",
+ "chrono",
+ "dotenvy",
+ "jsonwebtoken",
+ "moka",
+ "prost",
+ "prost-build",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "snafu",
+ "tokio",
+ "tower",
+ "tower-cookies",
+ "tower-http",
+ "tower_governor",
+ "tracing",
+ "tracing-subscriber",
+ "turso",
+ "url",
+ "urlencoding",
+ "uuid",
+ "validator",
 ]
 
 [[package]]

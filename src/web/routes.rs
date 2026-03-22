@@ -17,10 +17,7 @@ use crate::ctx::Ctx;
 use crate::error::ErrorInfo;
 use crate::models::{CspNonce, Pref};
 use crate::run::AppState;
-use crate::web::{
-    error_handler, index_handler, login_handler, logout_handler, oauth_api_routes,
-    oauth_authorize_handler, post_login_handler,
-};
+use crate::web::{error_handler, index_handler};
 
 use super::middleware::{
     auth_middleware, csp_nonce_middleware, pref_middleware, require_auth_middleware,
@@ -30,9 +27,7 @@ use super::{dark_theme_handler, handle_error, light_theme_handler};
 
 pub fn all_routes(state: AppState, frontend_dir: &Path) -> Router {
     Router::new()
-        .merge(public_routes(state.clone()))
         .merge(private_routes(state.clone()))
-        .merge(oauth_api_routes(state.clone()))
         .merge(assets_routes(frontend_dir))
         .layer(middleware::from_fn(add_security_headers))
         .layer(middleware::from_fn(csp_nonce_middleware))
@@ -86,34 +81,6 @@ pub fn private_routes(state: AppState) -> Router {
         .route_layer(middleware::from_fn_with_state(
             state.clone(),
             require_auth_middleware,
-        ))
-        .route_layer(middleware::from_fn_with_state(
-            state.clone(),
-            auth_middleware,
-        ))
-        .route_layer(middleware::from_fn(pref_middleware))
-        .with_state(state)
-}
-
-pub fn public_routes(state: AppState) -> Router {
-    // Rate limiter: 20 requests per minute per IP for auth/public routes
-    let governor_config = Arc::new(
-        GovernorConfigBuilder::default()
-            .per_second(1)
-            .burst_size(20)
-            .key_extractor(SmartIpKeyExtractor)
-            .finish()
-            .expect("Failed to create strict rate limiter config"),
-    );
-
-    Router::new()
-        .route("/login", get(login_handler).post(post_login_handler))
-        .route("/logout", post(logout_handler))
-        .route("/oauth/authorize", get(oauth_authorize_handler))
-        .layer(GovernorLayer::new(governor_config))
-        .layer(middleware::map_response_with_state(
-            state.clone(),
-            response_mapper,
         ))
         .route_layer(middleware::from_fn_with_state(
             state.clone(),

@@ -24,6 +24,7 @@ pub struct Config {
 pub struct ServerConfig {
     pub address: String,
     pub https: bool,
+    pub public_url: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -101,6 +102,7 @@ impl Config {
         Ok(Config {
             server: ServerConfig {
                 address: required_env("SERVER_ADDRESS")?,
+                public_url: required_env("SERVER_PUBLIC_URL")?,
                 https: required_env("HTTPS")? == "1",
             },
             db: DbConfig {
