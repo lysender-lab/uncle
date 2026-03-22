@@ -11,6 +11,7 @@ use crate::{Error, Result};
 pub struct Config {
     pub server: ServerConfig,
     pub db: DbConfig,
+    pub auth: AuthConfig,
     pub jwt_secret: String,
     pub api_url: String,
     pub frontend_dir: PathBuf,
@@ -29,6 +30,14 @@ pub struct ServerConfig {
 #[derive(Debug, Clone, Deserialize)]
 pub struct DbConfig {
     pub filename: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct AuthConfig {
+    pub auth_url: String,
+    pub api_url: String,
+    pub client_id: String,
+    pub client_secret: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -97,6 +106,12 @@ impl Config {
             },
             db: DbConfig {
                 filename: required_env("DB_FILENAME")?,
+            },
+            auth: AuthConfig {
+                auth_url: required_env("AUTH_PUBLIC_BASE_URL")?,
+                api_url: required_env("AUTH_API_BASE_URL")?,
+                client_id: required_env("AUTH_CLIENT_ID")?,
+                client_secret: required_env("AUTH_CLIENT_SECRET")?,
             },
             jwt_secret: required_env("JWT_SECRET")?,
             api_url: required_env("API_URL")?,
