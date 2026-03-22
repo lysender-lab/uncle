@@ -1,23 +1,20 @@
 use axum::{
     Extension,
-    extract::{Path, Request, State},
+    extract::{Request, State},
     middleware::Next,
     response::{IntoResponse, Redirect, Response},
 };
 use axum_extra::extract::CookieJar;
 
-use yaas::dto::Actor;
+use crate::dto::Actor;
 
 use crate::{
     Error, Result,
     ctx::Ctx,
     error::ErrorInfo,
-    models::{AppParams, CspNonce, OrgAppParams, OrgMemberParams, OrgParams, Pref, UserParams},
+    models::{CspNonce, Pref},
     run::AppState,
-    services::{
-        auth::authenticate_token, get_app_svc, get_org_app_svc, get_org_member_svc, get_org_svc,
-        users::get_user_svc,
-    },
+    services::auth::authenticate_token,
     web::{Action, Resource, enforce_policy, handle_error},
 };
 
@@ -96,81 +93,6 @@ pub async fn require_auth_middleware(
         }
     }
 
-    Ok(next.run(req).await)
-}
-
-pub async fn user_middleware(
-    state: State<AppState>,
-    ctx: Extension<Ctx>,
-    params: Path<UserParams>,
-    mut req: Request,
-    next: Next,
-) -> Result<Response> {
-    enforce_policy(&ctx.actor, Resource::User, Action::Read)?;
-
-    let user = get_user_svc(&state, &ctx, &params.user_id).await?;
-
-    req.extensions_mut().insert(user);
-    Ok(next.run(req).await)
-}
-
-pub async fn app_middleware(
-    state: State<AppState>,
-    ctx: Extension<Ctx>,
-    params: Path<AppParams>,
-    mut req: Request,
-    next: Next,
-) -> Result<Response> {
-    enforce_policy(&ctx.actor, Resource::App, Action::Read)?;
-
-    let app = get_app_svc(&state, &ctx, &params.app_id).await?;
-
-    req.extensions_mut().insert(app);
-    Ok(next.run(req).await)
-}
-
-pub async fn org_middleware(
-    state: State<AppState>,
-    ctx: Extension<Ctx>,
-    params: Path<OrgParams>,
-    mut req: Request,
-    next: Next,
-) -> Result<Response> {
-    enforce_policy(&ctx.actor, Resource::Org, Action::Read)?;
-
-    let org = get_org_svc(&state, &ctx, &params.org_id).await?;
-
-    req.extensions_mut().insert(org);
-    Ok(next.run(req).await)
-}
-
-pub async fn org_member_middleware(
-    state: State<AppState>,
-    ctx: Extension<Ctx>,
-    params: Path<OrgMemberParams>,
-    mut req: Request,
-    next: Next,
-) -> Result<Response> {
-    enforce_policy(&ctx.actor, Resource::OrgMember, Action::Read)?;
-
-    let org_member = get_org_member_svc(&state, &ctx, &params.org_id, &params.user_id).await?;
-
-    req.extensions_mut().insert(org_member);
-    Ok(next.run(req).await)
-}
-
-pub async fn org_app_middleware(
-    state: State<AppState>,
-    ctx: Extension<Ctx>,
-    params: Path<OrgAppParams>,
-    mut req: Request,
-    next: Next,
-) -> Result<Response> {
-    enforce_policy(&ctx.actor, Resource::OrgApp, Action::Read)?;
-
-    let org_app = get_org_app_svc(&state, &ctx, &params.org_id, &params.app_id).await?;
-
-    req.extensions_mut().insert(org_app);
     Ok(next.run(req).await)
 }
 
