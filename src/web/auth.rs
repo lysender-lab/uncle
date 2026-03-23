@@ -43,15 +43,19 @@ pub async fn auth_callback_handler(
     cookies: Cookies,
     Query(query): Query<AuthCallbackQuery>,
 ) -> Result<Response<Body>> {
-    if let Some(error) = query.error.as_deref() {
+    if query.error.is_some() {
         let description = query
             .description
             .as_deref()
             .or(query.error_description.as_deref())
-            .unwrap_or("No description provided.");
-        let message = format!("error: {error}, description: {description}");
+            .unwrap_or("Unable to login.");
 
-        return render_oauth_error_page(&state, csp_nonce.nonce, &message, StatusCode::BAD_REQUEST);
+        return render_oauth_error_page(
+            &state,
+            csp_nonce.nonce,
+            &description,
+            StatusCode::BAD_REQUEST,
+        );
     }
 
     let Some(code) = query.code else {
