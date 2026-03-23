@@ -17,7 +17,7 @@ use crate::ctx::Ctx;
 use crate::error::ErrorInfo;
 use crate::models::{CspNonce, Pref};
 use crate::run::AppState;
-use crate::web::{error_handler, index_handler};
+use crate::web::{auth_callback_handler, error_handler, index_handler};
 
 use super::middleware::{
     auth_middleware, csp_nonce_middleware, pref_middleware, require_auth_middleware,
@@ -27,11 +27,18 @@ use super::{dark_theme_handler, handle_error, light_theme_handler};
 
 pub fn all_routes(state: AppState, frontend_dir: &Path) -> Router {
     Router::new()
+        .merge(public_routes(state.clone()))
         .merge(private_routes(state.clone()))
         .merge(assets_routes(frontend_dir))
         .layer(middleware::from_fn(add_security_headers))
         .layer(middleware::from_fn(csp_nonce_middleware))
         .fallback(any(error_handler).with_state(state))
+}
+
+pub fn public_routes(state: AppState) -> Router {
+    Router::new()
+        .route("/auth/callback", get(auth_callback_handler))
+        .with_state(state)
 }
 
 pub fn assets_routes(dir: &Path) -> Router {

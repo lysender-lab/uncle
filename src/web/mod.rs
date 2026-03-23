@@ -1,3 +1,4 @@
+mod auth_callback;
 mod error;
 mod index;
 mod logout;
@@ -10,6 +11,7 @@ mod security_headers;
 pub const AUTH_TOKEN_COOKIE: &str = "uncle_auth_token";
 pub const THEME_COOKIE: &str = "uncle_theme";
 
+pub use auth_callback::*;
 pub use error::*;
 pub use index::*;
 pub use logout::*;
