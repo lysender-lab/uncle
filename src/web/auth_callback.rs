@@ -49,10 +49,7 @@ pub async fn auth_callback_handler(
             .as_deref()
             .or(query.error_description.as_deref())
             .unwrap_or("No description provided.");
-        let state_param = query.state.as_deref().unwrap_or("N/A");
-        let message = format!(
-            "error: {error}, description: {description}, state: {state_param}"
-        );
+        let message = format!("error: {error}, description: {description}");
 
         return render_oauth_error_page(&state, csp_nonce.nonce, &message, StatusCode::BAD_REQUEST);
     }
@@ -99,12 +96,7 @@ pub async fn auth_callback_handler(
                 _ => StatusCode::BAD_GATEWAY,
             };
 
-            return render_oauth_error_page(
-                &state,
-                csp_nonce.nonce,
-                &err.to_string(),
-                status,
-            );
+            return render_oauth_error_page(&state, csp_nonce.nonce, &err.to_string(), status);
         }
     };
 
@@ -137,6 +129,7 @@ fn render_oauth_error_page(
 
     Response::builder()
         .status(status)
+        .header("Content-Type", "text/html; charset=utf-8")
         .body(Body::from(tpl.render().context(TemplateSnafu)?))
         .context(ResponseBuilderSnafu)
 }
