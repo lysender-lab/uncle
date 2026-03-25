@@ -236,6 +236,10 @@ impl IntoResponse for Error {
         res.extensions_mut().insert(ErrorInfo {
             status_code,
             title,
+            error: status_code
+                .canonical_reason()
+                .expect("status_code must be valid")
+                .to_string(),
             message,
         });
 
@@ -253,6 +257,7 @@ pub struct ErrorResponse {
 pub struct ErrorInfo {
     pub status_code: StatusCode,
     pub title: String,
+    pub error: String,
     pub message: String,
 }
 
@@ -263,6 +268,10 @@ impl From<&Error> for ErrorInfo {
         Self {
             status_code,
             title: status_code
+                .canonical_reason()
+                .expect("status_code must be valid")
+                .to_string(),
+            error: status_code
                 .canonical_reason()
                 .expect("status_code must be valid")
                 .to_string(),

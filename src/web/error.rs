@@ -43,6 +43,7 @@ pub async fn error_handler(
         ErrorInfo {
             status_code: StatusCode::NOT_FOUND,
             title: String::from("Not Found"),
+            error: String::from("Not Found"),
             message: String::from("The page you are looking for cannot be found."),
         },
         true,
