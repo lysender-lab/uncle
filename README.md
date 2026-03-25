@@ -7,7 +7,7 @@ Goals:
 ## Tech Stack
 
 - Axum and Askama for the web server and templating.
-- Yaas API for single-signon and user management.
+- Yaas API for single sign-on and user management.
 - OpenAI API for AI interactions.
 - AWS S3 for image input/output storage.
 - Bulma CSS for multi-page application styling of the website.
@@ -71,3 +71,20 @@ jobs:
 ```
 tursodb db/uncle.db < migrations/migration-file.sql
 ```
+
+## API
+
+API endpoints:
+
+- [ ] GET `/api/image-prompts` - List all image prompts for the current user.
+- [ ] POST `/api/image-prompts` - Create a new image prompt.
+- [ ] GET `/api/image-prompts/{id}` - Get details of a specific image prompt.
+- [ ] GET `/api/image-prompts/{id}/status` - Get the status of a specific image prompt.
+- [ ] POST `/api/images/upload-urls` - Get presigned URLs for uploading images to S3.
+- [ ] POST `/api/image-prompts/{id}/images` - Add a new image related to the image prompt.
+- [ ] GET `/api/image-prompts/{id}/images` - Get all images associated with a specific image prompt.
+
+Response envelope:
+
+- Success: `{ status_code: u16, message: String }`
+- Error: `{ status_code: u16, message: String }`

@@ -13,14 +13,15 @@ use crate::dto::Actor;
 use crate::{
     Error, Result,
     ctx::Ctx,
-    error::ErrorInfo,
     models::{CspNonce, Pref},
     run::AppState,
     services::authenticate_token,
-    web::handle_error,
 };
 
 use super::{AUTH_TOKEN_COOKIE, THEME_COOKIE};
+
+#[derive(Clone)]
+pub struct ApiRequest(pub bool);
 
 /// Generates a nonce value for csp and make it available in request and response extensions
 pub async fn csp_nonce_middleware(mut req: Request, next: Next) -> Response {
@@ -34,8 +35,6 @@ pub async fn csp_nonce_middleware(mut req: Request, next: Next) -> Response {
 
 /// Validates auth token but does not require its validity
 pub async fn auth_middleware(
-    csp_nonce: Extension<CspNonce>,
-    pref: Extension<Pref>,
     state: State<AppState>,
     cookies: CookieJar,
     mut req: Request,
@@ -44,8 +43,6 @@ pub async fn auth_middleware(
     let token = cookies
         .get(AUTH_TOKEN_COOKIE)
         .map(|c| c.value().to_string());
-
-    let full_page = req.headers().get("HX-Request").is_none();
 
     // Allow ctx to be always present
     let mut ctx: Ctx = Ctx::new(Actor::default(), None);
@@ -63,14 +60,7 @@ pub async fn auth_middleware(
                     // Allow passing through
                 }
                 _ => {
-                    return handle_error(
-                        &state,
-                        Actor::default(),
-                        &pref,
-                        csp_nonce.nonce.clone(),
-                        ErrorInfo::from(&err),
-                        full_page,
-                    );
+                    return err.into_response();
                 }
             },
         };
@@ -86,9 +76,14 @@ pub async fn require_auth_middleware(
     req: Request,
     next: Next,
 ) -> Result<Response> {
+    let is_api = req.uri().path().starts_with("/api/");
     let full_page = req.headers().get("HX-Request").is_none();
 
     if !ctx.actor.has_auth_scope() {
+        if is_api {
+            return Err(Error::LoginRequired);
+        }
+
         if full_page {
             let callback_url = format!("{}/auth/callback", &state.config.server.public_url);
             let scope = encode("auth oauth");
@@ -122,6 +117,8 @@ pub async fn pref_middleware(cookies: CookieJar, mut req: Request, next: Next) -
         }
     }
 
+    let is_api = req.uri().path().starts_with("/api/");
+    req.extensions_mut().insert(ApiRequest(is_api));
     req.extensions_mut().insert(pref);
     next.run(req).await
 }
