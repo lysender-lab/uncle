@@ -27,21 +27,26 @@ use super::{dark_theme_handler, handle_error, light_theme_handler};
 
 pub fn all_routes(state: AppState, frontend_dir: &Path) -> Router {
     Router::new()
-        .merge(public_routes(state.clone()))
-        .merge(private_routes(state.clone()))
-        .merge(assets_routes(frontend_dir))
+        .merge(web_routes(state, frontend_dir))
         .layer(middleware::from_fn(add_security_headers))
         .layer(middleware::from_fn(csp_nonce_middleware))
+}
+
+fn web_routes(state: AppState, frontend_dir: &Path) -> Router {
+    Router::new()
+        .merge(assets_routes(frontend_dir))
+        .merge(public_routes(state.clone()))
+        .merge(private_routes(state.clone()))
         .fallback(any(error_handler).with_state(state))
 }
 
-pub fn public_routes(state: AppState) -> Router {
+fn public_routes(state: AppState) -> Router {
     Router::new()
         .route("/auth/callback", get(auth_callback_handler))
-        .with_state(state)
+        .with_state(state.clone())
 }
 
-pub fn assets_routes(dir: &Path) -> Router {
+fn assets_routes(dir: &Path) -> Router {
     let target_dir = dir.join("public");
     Router::new()
         .route(
@@ -65,7 +70,7 @@ async fn file_not_found() -> impl IntoResponse {
     (StatusCode::NOT_FOUND, "File not found")
 }
 
-pub fn private_routes(state: AppState) -> Router {
+fn private_routes(state: AppState) -> Router {
     // Rate limiter: 120 requests per minute per IP for authenticated routes
     let governor_config = Arc::new(
         GovernorConfigBuilder::default()
@@ -95,7 +100,7 @@ pub fn private_routes(state: AppState) -> Router {
             auth_middleware,
         ))
         .route_layer(middleware::from_fn(pref_middleware))
-        .with_state(state)
+        .with_state(state.clone())
 }
 
 async fn response_mapper(
