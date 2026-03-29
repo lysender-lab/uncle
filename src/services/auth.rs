@@ -1,15 +1,11 @@
-use prost::Message;
 use reqwest::StatusCode;
 use snafu::ResultExt;
 
+use crate::dto::Actor;
 use crate::dto::ActorDto;
 use crate::{
-    Error, Result,
-    error::{HttpResponseBytesSnafu, HttpResponseParseSnafu, ProtobufDecodeSnafu},
-    run::AppState,
-    services::token::decode_auth_token,
+    Error, Result, error::HttpResponseParseSnafu, run::AppState, services::token::decode_auth_token,
 };
-use crate::{buffed::actor::ActorBuf, dto::Actor};
 
 pub async fn authenticate_token(state: &AppState, token: &str) -> Result<Actor> {
     let claims = decode_auth_token(token)?;
@@ -32,12 +28,12 @@ pub async fn authenticate_token(state: &AppState, token: &str) -> Result<Actor> 
 
     match response.status() {
         StatusCode::OK => {
-            let body_bytes = response.bytes().await.context(HttpResponseBytesSnafu {})?;
-
-            let buff = ActorBuf::decode(&body_bytes[..]).context(ProtobufDecodeSnafu {})?;
-            let actor: ActorDto = buff.try_into().map_err(|e| Error::Whatever {
-                msg: format!("Unable to parse auth information: {}", e),
-            })?;
+            let actor = response
+                .json::<ActorDto>()
+                .await
+                .context(HttpResponseParseSnafu {
+                    msg: "Unable to parse auth information".to_string(),
+                })?;
 
             // Store to cache
             state.auth_cache.insert(

@@ -1,9 +1,7 @@
-use crate::buffed::dto::{ErrorMessageBuf, OauthTokenRequestBuf, OauthTokenResponseBuf, UserBuf};
-use prost::Message;
 use snafu::ResultExt;
 
-use crate::dto::{OauthTokenRequestDto, OauthTokenResponseDto, UserDto};
-use crate::error::{HttpClientSnafu, HttpResponseBytesSnafu, ProtobufDecodeSnafu};
+use crate::dto::{ErrorMessageDto, OauthTokenRequestDto, OauthTokenResponseDto, UserDto};
+use crate::error::{HttpClientSnafu, HttpResponseParseSnafu};
 use crate::run::AppState;
 use crate::{Error, Result};
 
@@ -13,18 +11,10 @@ pub async fn exchange_code_for_access_token(
 ) -> Result<OauthTokenResponseDto> {
     let url = format!("{}/oauth/token", &state.config.auth.api_url);
 
-    let body = OauthTokenRequestBuf {
-        client_id: payload.client_id.clone(),
-        client_secret: payload.client_secret.clone(),
-        code: payload.code.clone(),
-        redirect_uri: payload.redirect_uri.clone(),
-        state: payload.state.clone(),
-    };
-
     let response = state
         .client
         .post(url)
-        .body(prost::Message::encode_to_vec(&body))
+        .json(payload)
         .send()
         .await
         .context(HttpClientSnafu {
@@ -35,12 +25,12 @@ pub async fn exchange_code_for_access_token(
         return Err(handle_oauth_error(response).await);
     }
 
-    let body_bytes = response.bytes().await.context(HttpResponseBytesSnafu {})?;
-    let token_response =
-        OauthTokenResponseBuf::decode(&body_bytes[..]).context(ProtobufDecodeSnafu {})?;
-    let dto: OauthTokenResponseDto = token_response.into();
-
-    Ok(dto)
+    Ok(response
+        .json::<OauthTokenResponseDto>()
+        .await
+        .context(HttpResponseParseSnafu {
+            msg: "Unable to parse oauth information.".to_string(),
+        })?)
 }
 
 pub async fn oauth_profile(state: &AppState, token: &str) -> Result<UserDto> {
@@ -60,11 +50,12 @@ pub async fn oauth_profile(state: &AppState, token: &str) -> Result<UserDto> {
         return Err(handle_oauth_error(response).await);
     }
 
-    let body_bytes = response.bytes().await.context(HttpResponseBytesSnafu {})?;
-    let user = UserBuf::decode(&body_bytes[..]).context(ProtobufDecodeSnafu {})?;
-    let dto: UserDto = user.into();
-
-    Ok(dto)
+    Ok(response
+        .json::<UserDto>()
+        .await
+        .context(HttpResponseParseSnafu {
+            msg: "Unable to parse user information.".to_string(),
+        })?)
 }
 
 async fn handle_oauth_error(response: reqwest::Response) -> Error {
@@ -80,21 +71,15 @@ async fn handle_oauth_error(response: reqwest::Response) -> Error {
         };
     };
 
-    // We only expect a protobuf response or a text response
     match content_type {
-        "application/x-protobuf" => {
-            let Ok(body_bytes) = response.bytes().await else {
+        "application/json" => {
+            let Ok(error) = response.json::<ErrorMessageDto>().await else {
                 return Error::Service {
-                    msg: "Unable to read protobuf service error response".to_string(),
-                };
-            };
-            let Ok(msg) = ErrorMessageBuf::decode(&body_bytes[..]) else {
-                return Error::Service {
-                    msg: "Unable to decode protobuf service error response".to_string(),
+                    msg: "Unable to parse JSON service error response".to_string(),
                 };
             };
 
-            Error::Oauth { msg: msg.message }
+            Error::Oauth { msg: error.message }
         }
         "text/plain" | "text/plain; charset=utf-8" => {
             // Probably some default http error
