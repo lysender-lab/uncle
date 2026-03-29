@@ -3,6 +3,7 @@
 Goals:
 - [ ] Generate or edit images using AI models.
 - [ ] Chat-like interface like ChatGPT for conversational interactions with the AI.
+- [ ] Allow choosing AI providers and models. (OpenAI and Gemini for now)
 
 ## Tech Stack
 
@@ -55,16 +56,16 @@ jobs:
 
 - User submits a prompt through the web interface along with attached images if there are any.
 - Images are uploaded to AWS S3 using a presigned URL.
-- Prompt is received in the server, stored in the database with pending status and returns.
-- User periodically checks the status of the prompt until it is completed.
-- Once completed, user fetches the generated images and displays them in the interface.
-- If failed, user is notified and can try again or edit the prompt.
+- Prompt is received in the server, stored in the database with pending status, sent to a job and returns immediately.
+- Background worker sends the prompt to the AI provider and waits for the response.
+- Depending on the response, the job is either marked completed or failed.
+- Clients are notified with the status change via Websockets.
 
 ### Job Queue
 
 - On submit of a prompt, a job is created.
 - A worker process picks up pending jobs and processes then sequentially.
-- Once job is completed, prompt status is updated.
+- Once job is completed or failed, prompt status is updated.
 
 ## DB Migrations
 
