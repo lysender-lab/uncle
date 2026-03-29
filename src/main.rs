@@ -1,5 +1,4 @@
 mod ai;
-mod api;
 mod config;
 mod ctx;
 mod db;

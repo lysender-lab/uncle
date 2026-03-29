@@ -17,7 +17,7 @@ use crate::ctx::Ctx;
 use crate::error::{ErrorInfo, ErrorResponse};
 use crate::models::{CspNonce, Pref};
 use crate::run::AppState;
-use crate::web::{api_routes, auth_callback_handler, error_handler, index_handler};
+use crate::web::{api::api_routes, auth_callback_handler, error_handler, index_handler};
 
 use super::middleware::{
     ApiRequest, auth_middleware, csp_nonce_middleware, pref_middleware, require_auth_middleware,
