@@ -7,8 +7,6 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use snafu::Snafu;
 
-use crate::role::{InvalidPermissionsError, InvalidRolesError};
-
 pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug, Snafu)]
@@ -104,11 +102,14 @@ pub enum Error {
     #[snafu(display("Org app not found"))]
     OrgAppNotFound,
 
-    #[snafu(display("{}", source))]
-    InvalidRoles { source: InvalidRolesError },
+    #[snafu(display("Invalid roles: {}", msg))]
+    InvalidRoles { msg: String },
 
-    #[snafu(display("{}", source))]
-    InvalidPermissions { source: InvalidPermissionsError },
+    #[snafu(display("Invalid permissions: {}", msg))]
+    InvalidPermissions { msg: String },
+
+    #[snafu(display("Invalid scopes: {}", msg))]
+    InvalidScopes { msg: String },
 
     #[snafu(display("{}: {}", msg, source))]
     HttpClient { msg: String, source: reqwest::Error },

@@ -1,5 +1,6 @@
 use reqwest::StatusCode;
 use snafu::ResultExt;
+use tracing::info;
 
 use crate::dto::Actor;
 use crate::dto::ActorDto;
@@ -15,7 +16,7 @@ pub async fn authenticate_token(state: &AppState, token: &str) -> Result<Actor> 
         return Ok(actor);
     }
 
-    let url = format!("{}/user/authz", &state.config.auth.api_url);
+    let url = format!("{}/oauth/profile", &state.config.auth.api_url);
     let response = state
         .client
         .get(url.as_str())
@@ -46,6 +47,9 @@ pub async fn authenticate_token(state: &AppState, token: &str) -> Result<Actor> 
             Ok(Actor { actor: Some(actor) })
         }
         StatusCode::UNAUTHORIZED => Err(Error::LoginRequired),
-        _ => Err("Unable to process auth information. Try again later.".into()),
+        _ => {
+            info!("Auth API returned status code: {}", response.status());
+            Err("Unable to process auth information. Try again later.".into())
+        }
     }
 }
